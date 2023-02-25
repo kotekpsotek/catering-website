@@ -1,0 +1,1 @@
+type MealsTypes = "Breakfast" | "Lunch" | "Dinner" | "Dessert" | "Drinks"
