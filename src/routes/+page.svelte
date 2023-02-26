@@ -1,5 +1,5 @@
 <script lang="ts">
-    import FoodWidget from "../components/FoodWidget.svelte";
+    import FoodWidget from "$lib/components/FoodWidget.svelte";
     import breakfastImg from "../assets/breakfast.jpg"
     import lunchImg from "../assets/lunch.jpg"
     import dinnerImg from "../assets/dinner.jpg"

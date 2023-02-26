@@ -2,7 +2,7 @@
     import { TableOfContents, Home, Add } from "carbon-icons-svelte"
     import { page } from "$app/stores";
     import { foodOrder } from "../states/strores";
-    import OrderList from "../components/OrderList.svelte";
+    import OrderList from "$lib/components/OrderList.svelte";
 
     // Determine whether order list should be displaying
     let displayOrderList: boolean = false;

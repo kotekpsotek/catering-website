@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Close, TrashCan } from "carbon-icons-svelte";
-    import { getPricePerOrder, foodOrder, removeFoodFromOrder } from "../states/strores";
+    import { getPricePerOrder, foodOrder, removeFoodFromOrder } from "../../states/strores";
     import { createEventDispatcher, onDestroy } from "svelte";
 
     const evDispatcher = createEventDispatcher();
