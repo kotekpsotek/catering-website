@@ -2,6 +2,7 @@
     import { Close, TrashCan } from "carbon-icons-svelte";
     import { getPricePerOrder, foodOrder, removeFoodFromOrder } from "../../states/strores";
     import { createEventDispatcher, onDestroy } from "svelte";
+    import { afterNavigate } from "$app/navigation";
 
     const evDispatcher = createEventDispatcher();
 
@@ -13,10 +14,12 @@
         evDispatcher("close-order-list");
     }
 
-    // Finalize order by go to purchase page
-    function finalizeOrderButtonClick(ev: Event) {
-        /* TODO: Redirect user to purchase meals orders page */
-    }
+    // After when user is redirected to other url specified url in application navigation then "orders list menu" is always closing
+    afterNavigate(afterNavigationRsc => {
+        if (afterNavigationRsc.to?.route.id == "/payment") {
+            evDispatcher("close-order-list");
+        }
+    });
 
     // Remove meal from meals order after click on it
     function removeMealFromOrder(mealName: string) {
@@ -94,9 +97,7 @@
         </button>
         <!-- Display finalization order button only when on orders list are orders -->
         {#if $foodOrder.length}
-            <button class="finalize-order" on:click={finalizeOrderButtonClick}>
-                Buy
-            </button>
+            <a class="finalize-order" href="/payment">Buy</a>
         {/if}
     </div>
 </div>
@@ -225,9 +226,10 @@
         align-items: center;
     }
 
-    button.finalize-order {
-        width: 100px;
+    a.finalize-order {
         font-family: Font-Bold;
+        font-size: 13px;
+        text-decoration: none;
         color: slateblue;
     }
 

@@ -1,6 +1,6 @@
-import type { ServerLoad } from "@sveltejs/kit"
 import { mealsModel, ingredientsModel } from "$lib/server/database/mongodb"
 import type { MealsAndIngredientsLook } from "../typing";
+import type { LayoutServerLoad } from "./$types";
 
 const pathNamesForMealsLoading = ["/breakfast", "/dessert", "/dinner", "/lunch"]
 const pathNamesForIngredients = ["/drinks"].concat(pathNamesForMealsLoading);
@@ -63,4 +63,4 @@ export const load = (async ({ request: { url } }) => {
         meals, // Empty or enrolled
         ingredients // Empty or enrolled
     }
-}) satisfies ServerLoad
+}) satisfies LayoutServerLoad
