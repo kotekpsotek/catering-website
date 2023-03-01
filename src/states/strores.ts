@@ -43,18 +43,43 @@ export function isMealInFoodOrder(mealName: string): boolean {
 }
 
 // Get price per whole order
-export function getPricePerOrder(): number {
+/**
+ * @param orderList - is optional and only for server side usage
+*/
+export function getPricePerOrder(orderList?: OrderedMealReadyToFinalization): number {
     // When order list is empty then 0 always will be returned
     let result: number = 0;
 
-    foodOrder.update(listOrders => {
-        listOrders.forEach(orderOne => {
-            result += orderOne.price;
+    if (!orderList) {
+        foodOrder.update(listOrders => {
+            listOrders.forEach(orderOne => {
+                result += orderOne.price;
+            });
+            
+            return listOrders;
         });
-        
-        return listOrders;
-    });
+    }
+    else {
+        for (const { price } of orderList) {
+            result += price
+        }
+    }
 
     return result;
 }
 
+// Get all necessary data from food order to finalize operation by payment without unnecessary data (overhead data)
+export type OrderedMealReadyToFinalization = Omit<OrderedMeal, "imageUrl">[];
+export function getOrderForFinalizationByPayment(): OrderedMealReadyToFinalization {
+    const result: OrderedMealReadyToFinalization = [];
+
+    foodOrder.update(ordersList => {
+        for (const { price, name } of ordersList) {
+            result.push({ price, name });
+        }
+
+        return ordersList;
+    });
+
+    return result;
+}

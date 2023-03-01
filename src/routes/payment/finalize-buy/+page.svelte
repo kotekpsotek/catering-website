@@ -1,28 +1,14 @@
 <!-- Page to Add data required to perform delivery -->
 <script lang="ts">
     import { Need, Home } from "carbon-icons-svelte";
-    import { foodOrder, getPricePerOrder } from "../../../states/strores";
+    import { foodOrder, getPricePerOrder, getOrderForFinalizationByPayment } from "../../../states/strores";
     import urlPrzelewy24LogoSVG from "../../../assets/payment_methods/Przelewy24_logo.svg";
     import urlBlikLogoJPG from "../../../assets/payment_methods/BLIK LOGO RGB.jpg";
     import urlCreditCardIconPNG from "../../../assets/payment_methods/credit-card.png";
-    
-    interface PurchaseOrder {
-        first_name: string, // ordering user first name
-        last_name: string, // ordering user last name
-        email: string, // ordering user email address
-        phone_number: string, // ordering user phone number
-        city: string, // city for delivery
-        street: string, // street for delivery
-        house_number: number, // house number for delivery
-        premises_number?: number, // optional! premises number for delivery
-        post_code: string, // post code for delivery
-        description?: string // optional description attached to delivery order
-        delivery_manner: "to hands" | "leave in front of house", // delivery manner
-        payment_method: "blik" | "card" | "przelewy24" // required payment method
-    }
+    import type { PurchaseOrder } from "../../../typing";
 
     // Collect delivery data into
-    const deliveryData: PurchaseOrder = {
+    /* const deliveryData: PurchaseOrder = {
         first_name: "",
         last_name: "",
         email: "",
@@ -35,6 +21,21 @@
         description: undefined,
         delivery_manner: undefined as any, // invalid I know
         payment_method: undefined as any // invalid I know
+    }; */
+    // For test purposes only. Above commented version is ready for release version
+    const deliveryData: PurchaseOrder = {
+        first_name: "JKSJKSJKSJKD",
+        last_name: "chgdhshsdh",
+        email: "ja@c.pl",
+        phone_number: "1234567",
+        city: "Warsaw",
+        street: "Glory",
+        house_number: 12, // invalid I know
+        premises_number: 1,
+        post_code: "1234567",
+        description: undefined,
+        delivery_manner: "leave in front of house", // invalid I know
+        payment_method: "przelewy24" // invalid I know
     };
 
     const deliveryMannerIconsSize = 50 as 24;
@@ -46,7 +47,7 @@
 
     // Get delivery address data as a text for GUI
     function getDeliveryAdressDataForGUI(): string {
-        return deliveryAdressHasBeenPassed() ? `${deliveryData.city} ${deliveryData.street} ${deliveryData.house_number} ${deliveryData.premises_number || ""} ${deliveryData.post_code}`.trim() : "Not selected or Invalid"
+        return deliveryAdressHasBeenPassed() ? `${deliveryData.city} ${deliveryData.street} ${deliveryData.house_number}${deliveryData.premises_number != undefined ? "/"+deliveryData.premises_number : ""} ${deliveryData.post_code}`.trim() : "Not selected or Invalid"
     }
 
     // Get full and correct name for selected payment when it has been selected for GUI and return "Not selected" when it hasn't been
@@ -77,9 +78,38 @@
         }
     }
 
-    // When user click on go to payment button
-    function goToPayment(ev: Event) {
-        // TODO: check data correcteness and pass data to server then redirect to payment page
+    // Return status which refers to whether user give all needed data to go to next step (Payment)
+    function userCanGoToPayment(): boolean {
+        const { first_name, last_name, email, phone_number, delivery_manner, payment_method } = deliveryData;
+        
+        return first_name.length > 0 && last_name.length > 0 && (email.includes("@") && email.trim().split("@").length == 2) && phone_number.length > 5 && delivery_manner != undefined && payment_method != undefined
+    }
+
+    // When user click on go to payment button when it hasn't got enabled "disabled" attribute
+    async function goToPayment(ev: Event) {
+        if (userCanGoToPayment()) {
+            const dataToFinalization = Object.assign(deliveryData, {
+                order: getOrderForFinalizationByPayment()
+            });
+            const sendOrder = await fetch(document.URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(dataToFinalization)
+            });
+    
+            if (sendOrder.status == 200) {
+                // Recive payment session to redirect user to it
+                const { paymentSessionURL } = await sendOrder.json();
+
+                // Redirect user window to created payment session
+                window.location = paymentSessionURL;
+            }
+            else alert("Couldn't redirect you to next step page!" + sendOrder.status + " " + document.URL);
+        }
+        // This below isn't necessary because enabled "disabled" attribute doesn't afford click event to work
+        // else alert("You didn't added all required data to finalize order by payment!")
     }
 </script>
 
@@ -152,13 +182,13 @@
                             <p>Delivery address:</p>
                             <p class:invalid={getDeliveryAdressDataForGUI() == "Not selected or Invalid"}>{getDeliveryAdressDataForGUI()}</p>
                         </div>
-                        <div class="selected-delivery-manner">
-                            <p>Selected delivery manner:</p>
-                            <p class:invalid={getSelectedPaymentMethodName() == "Not selected"}>{getSelectedPaymentMethodName()}</p>
-                        </div>
                         <div class="selected-payment-method">
-                            <p>Selected payment method:</p>
+                            <p>Selected delivery manner</p>
                             <p class:invalid={getSelectedDeliveryMethodName() == "Not selected"}>{getSelectedDeliveryMethodName()}</p>
+                        </div>
+                        <div class="selected-delivery-manner">
+                            <p>Selected payment method:</p>
+                            <p class:invalid={getSelectedPaymentMethodName() == "Not selected"}>{getSelectedPaymentMethodName()}</p>
                         </div>
                     {/key}
                 </div>
@@ -166,7 +196,9 @@
                     <p>For payment:</p>
                     <p class="price">{getPricePerOrder()} zł</p>
                 </div>
-                <button id="go-to-payment" on:click={goToPayment}>Go to payment</button>
+                {#key deliveryData}
+                    <button id="go-to-payment" disabled="{!userCanGoToPayment()}" on:click={goToPayment}>Go to payment</button>
+                {/key}
             </div>
         </div>
     </div>
@@ -365,5 +397,9 @@
         cursor: pointer;
         background-color: slateblue;
         color: whitesmoke;
+    }
+
+    button[disabled]#go-to-payment {
+        opacity: 0.7;
     }
 </style>

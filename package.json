@@ -23,6 +23,7 @@
 	"type": "module",
 	"dependencies": {
 		"carbon-icons-svelte": "^11.4.0",
-		"mongoose": "^6.10.0"
+		"mongoose": "^6.10.0",
+		"stripe": "^11.12.0"
 	}
 }
