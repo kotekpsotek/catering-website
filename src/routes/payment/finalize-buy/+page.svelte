@@ -6,6 +6,7 @@
     import urlBlikLogoJPG from "../../../assets/payment_methods/BLIK LOGO RGB.jpg";
     import urlCreditCardIconPNG from "../../../assets/payment_methods/credit-card.png";
     import type { PurchaseOrder } from "../../../typing";
+    import { goto } from "$app/navigation";
 
     // Collect delivery data into
     /* const deliveryData: PurchaseOrder = {
@@ -101,10 +102,10 @@
     
             if (sendOrder.status == 200) {
                 // Recive payment session to redirect user to it
-                const { paymentSessionURL } = await sendOrder.json();
+                const { paymentSessionURL, paymentMethod } = await sendOrder.json();
 
-                // Redirect user window to created payment session
-                window.location = paymentSessionURL;
+                // Redirect user to last page where will be showing payment results
+                await goto(`/payment/end?payment_url=${paymentSessionURL}&payment_method=${paymentMethod}`);
             }
             else alert("Couldn't redirect you to next step page!" + sendOrder.status + " " + document.URL);
         }

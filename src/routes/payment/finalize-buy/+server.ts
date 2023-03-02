@@ -2,15 +2,10 @@ import { type RequestHandler, json, error } from "@sveltejs/kit";
 import { getPricePerOrder, type OrderedMealReadyToFinalization } from "../../../states/strores";
 import type { PurchaseOrder } from "../../../typing";
 import crypto from "crypto";
-import Stripe from "stripe";
-import { STRIPE_API_KEY } from "$env/static/private";
 import { paymentsModel } from "$lib/server/database/mongodb";
+import { stripe } from "$lib/server/globals";
 
-const stripe = new Stripe(STRIPE_API_KEY, {
-    apiVersion: "2022-11-15"
-});
-
-export const POST = (async ({ request }) => {
+export const POST = (async ({ request, url }) => {
     const { first_name, last_name, email, phone_number, city, street, house_number, premises_number, post_code, description, delivery_manner, payment_method, order }: PurchaseOrder & { order: OrderedMealReadyToFinalization } = await request.json();
 
     // Acceptable values for field definition
@@ -38,13 +33,14 @@ export const POST = (async ({ request }) => {
             currency: "PLN",
             mode: "payment",
             payment_method_types: [payment_method != "przelewy24" ? payment_method : "p24"], // supported payment methods are defined here
-            success_url: `${request.url}/payment/end?status=success&operationId=${operationId}`, // redirect to this page after successfull payment
-            cancel_url: `${request.url}/payment/end?status=failure&operationId=${operationId}` // redirect to this page after payment calcelation by user
+            success_url: `${url.origin}/payment/end?status=success&operationId=${operationId}`, // redirect to this page after successfull payment
+            cancel_url: `${url.origin}/payment/end?status=failure&operationId=${operationId}` // redirect to this page after payment calcelation by user
         });
 
         // Save created session into database
         await paymentsModel.create({
             operation_id: operationId,
+            stripe_session_id: stripeSession.id, // unique stripe session identifier
             payment_status: stripeSession.payment_status,
             user_info: {
                 first_name,
@@ -61,11 +57,18 @@ export const POST = (async ({ request }) => {
             description,
             delivery_manner,
             payment_method,
+            creation_date: new Date(),
             order
         });
 
-        // Return to client side url to perform payment using stripe
-        return json({ paymentSessionURL: stripeSession.url });
+        
+        // Response will be returning to client only when server recives checkout session url from stripe api else client gets 401 http error status code
+        if (stripeSession.url) {
+            // Return to client side url to perform payment using stripe. URL is encoded using base64 (url sub-version) from subsequent reasons
+            // To client is also returned payment method selected by him prior
+            return json({ paymentSessionURL: Buffer.from(stripeSession.url, "utf-8").toString("base64url"), paymentMethod: payment_method });
+        }
+        else throw error(401);
     }
     else throw error(406); 
 
