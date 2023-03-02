@@ -3,6 +3,8 @@
     import { page } from "$app/stores";
     import { foodOrder } from "../states/strores";
     import OrderList from "$lib/components/OrderList.svelte";
+    import { onDestroy, onMount } from "svelte";
+    import OrderBasket from "$lib/orderBasket";
 
     // Determine whether order list should be displaying
     let displayOrderList: boolean = false;
@@ -11,6 +13,18 @@
     function clickOnMenu(ev: Event) {
         displayOrderList = !displayOrderList;
     }
+
+    // Actions which will be performing while component is mounted to application GUI
+    onMount(() => {
+        // Load order state saved into window.localStorage to foodOrder svelte storage
+        OrderBasket.load();
+    })
+
+    // Actions which will be performing while component destroying
+    onDestroy(() => {
+        // Save foodOrder state within window.localStorage
+        OrderBasket.save();
+    });
 </script>
 
 <div class="info-stripe">
