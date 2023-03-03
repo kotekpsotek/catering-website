@@ -1,6 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { writable } from "svelte/store";
+    import { page } from "$app/stores";
+    import { goto } from "$app/navigation";
     
     export let data: import("./$types").PageData;
     const { paymentMethod, paymentUrl, status, operationId, pricePerOrder, orderStatus, failureReason } = data;
@@ -26,6 +28,10 @@
     // Event listened when user click on button with selector button#try-again to try again create payment (inside is performed communication with server side)
     async function tryAgainCreatePayment(ev: Event) {
         /* TODO: */
+        const acctuallPageUrl = $page.url;
+        const goToUrl = `${acctuallPageUrl.pathname}?status=try_create_payment_again&operationId=${operationId}`;        
+
+        goto(goToUrl);
     }
 </script>
 

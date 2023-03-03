@@ -34,7 +34,8 @@ const paymentSchema = new Schema({
     order: {
         type: [orderSchema],
         required: true
-    }
+    },
+    expired_stripe_payment_sessions: { type: [{ op_id: { type: String }, stripe_session_id: { type: String } }], required: false }
 });
 
 export {

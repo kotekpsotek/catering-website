@@ -3,7 +3,7 @@ import { getPricePerOrder, type OrderedMealReadyToFinalization } from "../../../
 import type { PurchaseOrder } from "../../../typing";
 import crypto from "crypto";
 import { paymentsModel } from "$lib/server/database/mongodb";
-import { stripe } from "$lib/server/globals";
+import { generateStripeSession, stripe } from "$lib/server/globals";
 
 export const POST = (async ({ request, url }) => {
     const { first_name, last_name, email, phone_number, city, street, house_number, premises_number, post_code, description, delivery_manner, payment_method, order }: PurchaseOrder & { order: OrderedMealReadyToFinalization } = await request.json();
@@ -16,26 +16,7 @@ export const POST = (async ({ request, url }) => {
     const price_per_order = getPricePerOrder(order);
 
     if (first_name.length && last_name.length && (email.includes("@") && email.trim().split("@").length == 2) && phone_number.length > 5 && city.length && street.length && house_number && (post_code.length >= 5 && post_code.length <= 8) && acceptableDeliveryManners.includes(delivery_manner) && acceptablePaymentMethods.includes(payment_method) && order.length) {
-        const operationId = crypto.randomUUID();
-
-        const stripeSession = await stripe.checkout.sessions.create({
-            line_items: [
-                { 
-                    price_data: { 
-                        currency: "PLN", 
-                        product_data: { name: "Order", description: "Your choosen order" },
-                        unit_amount: price_per_order * 100 // price * 100 because price is within "grosz" unit
-                    },
-                    quantity: 1   
-                }
-            ],
-            customer_email: email,
-            currency: "PLN",
-            mode: "payment",
-            payment_method_types: [payment_method != "przelewy24" ? payment_method : "p24"], // supported payment methods are defined here
-            success_url: `${url.origin}/payment/end?status=success&operationId=${operationId}`, // redirect to this page after successfull payment
-            cancel_url: `${url.origin}/payment/end?status=failure&operationId=${operationId}&reason=${Buffer.from("User resigne manually from payment", "utf-8").toString("base64url")}` // redirect to this page after payment calcelation by user
-        });
+        const { stripeSession, operationId } = await generateStripeSession(price_per_order, email, payment_method, url);
 
         // Save created session into database
         await paymentsModel.create({
@@ -61,7 +42,6 @@ export const POST = (async ({ request, url }) => {
             order
         });
 
-        
         // Response will be returning to client only when server recives checkout session url from stripe api else client gets 401 http error status code
         if (stripeSession.url) {
             // Return to client side url to perform payment using stripe. URL is encoded using base64 (url sub-version) from subsequent reasons
