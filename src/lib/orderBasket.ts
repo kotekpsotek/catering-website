@@ -7,9 +7,9 @@ export default class OrderBasket {
     // Save basket state into browswer window.localStorage
     static save() {
         foodOrder.update(ordersList => {
-            if (ordersList.length) {
+            if (ordersList) {
                 const serialized = JSON.stringify(ordersList);
-                localStorage.setItem(OrderBasket.KEY_NAME, serialized);
+                window.localStorage.setItem(OrderBasket.KEY_NAME, serialized);
             };
 
             return ordersList;

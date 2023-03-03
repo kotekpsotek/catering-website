@@ -18,13 +18,16 @@
     onMount(() => {
         // Load order state saved into window.localStorage to foodOrder svelte storage
         OrderBasket.load();
-    })
 
-    // Actions which will be performing while component destroying
-    onDestroy(() => {
         // Save foodOrder state within window.localStorage
-        OrderBasket.save();
+        window.addEventListener("pagehide", ev => {
+            OrderBasket.save();
+        });
     });
+    
+    // Actions which will be performing while component destroying
+    /* onDestroy(() => {
+    }); */
 </script>
 
 <div class="info-stripe">
