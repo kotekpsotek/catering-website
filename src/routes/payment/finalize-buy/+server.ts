@@ -34,7 +34,7 @@ export const POST = (async ({ request, url }) => {
             mode: "payment",
             payment_method_types: [payment_method != "przelewy24" ? payment_method : "p24"], // supported payment methods are defined here
             success_url: `${url.origin}/payment/end?status=success&operationId=${operationId}`, // redirect to this page after successfull payment
-            cancel_url: `${url.origin}/payment/end?status=failure&operationId=${operationId}` // redirect to this page after payment calcelation by user
+            cancel_url: `${url.origin}/payment/end?status=failure&operationId=${operationId}&reason=${Buffer.from("User resigne manually from payment", "utf-8").toString("base64url")}` // redirect to this page after payment calcelation by user
         });
 
         // Save created session into database
