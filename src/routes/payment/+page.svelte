@@ -2,6 +2,7 @@
 <script lang="ts">
     import { foodOrder, getPricePerOrder } from "../../states/strores";
     import { goto } from "$app/navigation";
+    import ProgressInPayProcessForDelivery from "$lib/components/ProgressInPayProcessForDelivery.svelte";
 
     // Continue ordering by go back to previous page before /payment from window.history
     function continueOrdering(ev: Event) {
@@ -16,6 +17,7 @@
 </script>
 
 <div class="summary">
+    <ProgressInPayProcessForDelivery isOnWay={1} actualStation={1}/>
     <div class="nested">
         <div class="t-box">
             <h1>Summary and Payment</h1>

@@ -3,9 +3,14 @@
     import { writable } from "svelte/store";
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
+    import OrderBasket from "$lib/orderBasket";
+    import ProgressInPayProcessForDelivery from "$lib/components/ProgressInPayProcessForDelivery.svelte";
     
     export let data: import("./$types").PageData;
     const { paymentMethod, paymentUrl, status, operationId, pricePerOrder, orderStatus, failureReason } = data;
+
+    // Determing width for bar with visualisation step in way to finalize ordering
+    let enclosingContainerWidth: number;
 
     // Storage counting seconds time to redirect user to payment stripe page
     const timerToRedirectSec = writable<number>(5);
@@ -23,6 +28,11 @@
             }
             else clearInterval(int);
         }, 1_000);
+
+        // Clear order basket after buy delivery from this basket (by clearing browswer window.loclaStorage order backup and svelte storage with order)
+        if (status == "success") {
+            OrderBasket.destroy();
+        };
     });
 
     // Event listened when user click on button with selector button#try-again to try again create payment (inside is performed communication with server side)
@@ -35,16 +45,23 @@
     }
 </script>
 
+<!-- Container with way to finalize payment visualisation -->
+<div class="container-with-way-step-visualisation">
+    <ProgressInPayProcessForDelivery isOnWay={3} actualStation={3} customWidth={enclosingContainerWidth + 150}/>
+</div>
+
+<!-- Container with way station source content data -->
 <div class="enclosing">
     {#if paymentUrl}
-        <div class="info">
+        <!-- Information about that soon user will be redirect to stripe service payment website to create payment -->
+        <div class="info" bind:clientWidth={enclosingContainerWidth}>
             <h1 class="waiting-for-payment">Waiting for your payment...</h1>
             <p class="description">Will happen redirect you to <b>Stripe</b> payment system to finalize operation using <span class="payment-method">{paymentMethod}</span> payment method selected prior by you</p>
             <p class="timer">{$timerToRedirectSec} secs</p>
         </div>
     {:else if status}
-        <!--  -->
-        <div class="result-info">
+        <!-- Information about result of paiment operation from stripe payment website -->
+        <div class="result-info" bind:clientWidth={enclosingContainerWidth}>
             {#if status == "success"}
                 <h1 class="success">Success. Payment has been created</h1>
                 <p class="description">You can now follow state of your order in user panel (Click in below block to go, to user panel)</p>
@@ -86,6 +103,15 @@
 </div>
 
 <style>
+    .container-with-way-step-visualisation {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: Font;
+        margin-top: 10px;
+    }
+
     .enclosing {
         width: 100%;
         height: 100%;

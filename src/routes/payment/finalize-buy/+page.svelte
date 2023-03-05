@@ -7,6 +7,11 @@
     import urlCreditCardIconPNG from "../../../assets/payment_methods/credit-card.png";
     import type { PurchaseOrder } from "../../../typing";
     import { goto } from "$app/navigation";
+    import ProgressInPayProcessForDelivery from "$lib/components/ProgressInPayProcessForDelivery.svelte";
+
+    // Let get width for stripe with actual way visualisation to finalize ordering meals/ingredients
+    let determineDataContainerWidth: number;
+    let summarizationContainerWidth: number;
 
     // Collect delivery data into
     /* const deliveryData: PurchaseOrder = {
@@ -116,90 +121,94 @@
 
 {#if $foodOrder.length}
     <div class="enclosing">
-        <div class="determine-data">
-            <h1>Data for Delivery and Payment</h1>
-            <div class="input-fields">
-                <h2>Data for delivery</h2>
-                <input type="text" placeholder="Firstname" required bind:value={deliveryData.first_name}>
-                <input type="text" placeholder="Lastname" required bind:value={deliveryData.last_name}>
-                <div class="inputs-inline">
-                    <input type="text" placeholder="Email" required bind:value={deliveryData.email}>
-                    <input type="text" placeholder="Phone number" required bind:value={deliveryData.phone_number}>
+        <!-- Attach component with progress in ordering visualisation (with custom width for this element) -->
+        <ProgressInPayProcessForDelivery isOnWay={2} actualStation={2} customWidth={determineDataContainerWidth + summarizationContainerWidth - 10}/>
+        <div class="on-x">
+            <div class="determine-data" bind:clientWidth={determineDataContainerWidth}>
+                <h1>Data for Delivery and Payment</h1>
+                <div class="input-fields">
+                    <h2>Data for delivery</h2>
+                    <input type="text" placeholder="Firstname" required bind:value={deliveryData.first_name}>
+                    <input type="text" placeholder="Lastname" required bind:value={deliveryData.last_name}>
+                    <div class="inputs-inline">
+                        <input type="text" placeholder="Email" required bind:value={deliveryData.email}>
+                        <input type="text" placeholder="Phone number" required bind:value={deliveryData.phone_number}>
+                    </div>
+                    <div class="inputs-inline">
+                        <input type="text" placeholder="Locality" required bind:value={deliveryData.city}>
+                        <input type="text" placeholder="Street" required bind:value={deliveryData.street}>
+                        <input type="number" placeholder="House number" required bind:value={deliveryData.house_number}>
+                        <input type="number" placeholder="Premise number" bind:value={deliveryData.premises_number}>
+                    </div>
+                    <input type="text" placeholder="Post code" required bind:value={deliveryData.post_code}>
                 </div>
-                <div class="inputs-inline">
-                    <input type="text" placeholder="Locality" required bind:value={deliveryData.city}>
-                    <input type="text" placeholder="Street" required bind:value={deliveryData.street}>
-                    <input type="number" placeholder="House number" required bind:value={deliveryData.house_number}>
-                    <input type="number" placeholder="Premise number" bind:value={deliveryData.premises_number}>
+                <div class="additional">
+                    <h2>Additional Description</h2>
+                    <textarea placeholder="Description" maxlength="2000" bind:value={deliveryData.description}></textarea>
+                    <div class="maximum-size">
+                        <p>{deliveryData.description?.length || 0}/2000</p>
+                    </div>
                 </div>
-                <input type="text" placeholder="Post code" required bind:value={deliveryData.post_code}>
+                <div class="delivery-manner">
+                    <h2>Delivery Manner</h2>
+                    <div class="option">
+                        <Need size={deliveryMannerIconsSize}/>
+                        <input type="radio" value="to hands" bind:group={deliveryData.delivery_manner}>
+                        <p>Delivery to your hands</p>
+                    </div>
+                    <div class="option">
+                        <Home size={deliveryMannerIconsSize}/>
+                        <input type="radio" value="leave in front of house" bind:group={deliveryData.delivery_manner}>
+                        <p>Leave delivery in front of door</p>
+                    </div>
+                </div>
+                <div class="payment-method">
+                    <h2>Payment method for order</h2>
+                    <div class="option">
+                        <img src="{urlPrzelewy24LogoSVG}" alt="">
+                        <input type="radio" value="przelewy24" bind:group={deliveryData.payment_method}>
+                        <p>Przelewy24</p>
+                    </div>
+                    <div class="option">
+                        <img src="{urlBlikLogoJPG}" alt="">
+                        <input type="radio" value="blik" bind:group={deliveryData.payment_method}>
+                        <p>Blik</p>
+                    </div>
+                    <div class="option">
+                        <img src="{urlCreditCardIconPNG}" alt="">
+                        <input type="radio" value="card" bind:group={deliveryData.payment_method}>
+                        <p>Credit Card</p>
+                    </div>
+                </div>
+                <!-- <button on:click={ev => console.log(deliveryData)}>Click to check passed data for delivery and order</button> -->
             </div>
-            <div class="additional">
-                <h2>Additional Description</h2>
-                <textarea placeholder="Description" maxlength="2000" bind:value={deliveryData.description}></textarea>
-                <div class="maximum-size">
-                    <p>{deliveryData.description?.length || 0}/2000</p>
-                </div>
-            </div>
-            <div class="delivery-manner">
-                <h2>Delivery Manner</h2>
-                <div class="option">
-                    <Need size={deliveryMannerIconsSize}/>
-                    <input type="radio" value="to hands" bind:group={deliveryData.delivery_manner}>
-                    <p>Delivery to your hands</p>
-                </div>
-                <div class="option">
-                    <Home size={deliveryMannerIconsSize}/>
-                    <input type="radio" value="leave in front of house" bind:group={deliveryData.delivery_manner}>
-                    <p>Leave delivery in front of door</p>
-                </div>
-            </div>
-            <div class="payment-method">
-                <h2>Payment method for order</h2>
-                <div class="option">
-                    <img src="{urlPrzelewy24LogoSVG}" alt="">
-                    <input type="radio" value="przelewy24" bind:group={deliveryData.payment_method}>
-                    <p>Przelewy24</p>
-                </div>
-                <div class="option">
-                    <img src="{urlBlikLogoJPG}" alt="">
-                    <input type="radio" value="blik" bind:group={deliveryData.payment_method}>
-                    <p>Blik</p>
-                </div>
-                <div class="option">
-                    <img src="{urlCreditCardIconPNG}" alt="">
-                    <input type="radio" value="card" bind:group={deliveryData.payment_method}>
-                    <p>Credit Card</p>
-                </div>
-            </div>
-            <!-- <button on:click={ev => console.log(deliveryData)}>Click to check passed data for delivery and order</button> -->
-        </div>
-        <div class="summarization">
-            <div class="content">
-                <h1>Summarization</h1>
-                <div class="encounter">
+            <div class="summarization" bind:clientWidth={summarizationContainerWidth}>
+                <div class="content">
+                    <h1>Summarization</h1>
+                    <div class="encounter">
+                        {#key deliveryData}
+                            <div class="delivery-address">
+                                <p>Delivery address:</p>
+                                <p class:invalid={getDeliveryAdressDataForGUI() == "Not selected or Invalid"}>{getDeliveryAdressDataForGUI()}</p>
+                            </div>
+                            <div class="selected-payment-method">
+                                <p>Selected delivery manner</p>
+                                <p class:invalid={getSelectedDeliveryMethodName() == "Not selected"}>{getSelectedDeliveryMethodName()}</p>
+                            </div>
+                            <div class="selected-delivery-manner">
+                                <p>Selected payment method:</p>
+                                <p class:invalid={getSelectedPaymentMethodName() == "Not selected"}>{getSelectedPaymentMethodName()}</p>
+                            </div>
+                        {/key}
+                    </div>
+                    <div class="for-payment">
+                        <p>For payment:</p>
+                        <p class="price">{getPricePerOrder()} zł</p>
+                    </div>
                     {#key deliveryData}
-                        <div class="delivery-address">
-                            <p>Delivery address:</p>
-                            <p class:invalid={getDeliveryAdressDataForGUI() == "Not selected or Invalid"}>{getDeliveryAdressDataForGUI()}</p>
-                        </div>
-                        <div class="selected-payment-method">
-                            <p>Selected delivery manner</p>
-                            <p class:invalid={getSelectedDeliveryMethodName() == "Not selected"}>{getSelectedDeliveryMethodName()}</p>
-                        </div>
-                        <div class="selected-delivery-manner">
-                            <p>Selected payment method:</p>
-                            <p class:invalid={getSelectedPaymentMethodName() == "Not selected"}>{getSelectedPaymentMethodName()}</p>
-                        </div>
+                        <button id="go-to-payment" disabled="{!userCanGoToPayment()}" on:click={goToPayment}>Go to payment</button>
                     {/key}
                 </div>
-                <div class="for-payment">
-                    <p>For payment:</p>
-                    <p class="price">{getPricePerOrder()} zł</p>
-                </div>
-                {#key deliveryData}
-                    <button id="go-to-payment" disabled="{!userCanGoToPayment()}" on:click={goToPayment}>Go to payment</button>
-                {/key}
             </div>
         </div>
     </div>
@@ -216,6 +225,12 @@
         height: 100vh;
         padding: 10px;
         font-family: Font;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .enclosing .on-x {
         display: flex;
         justify-content: center;
         flex-wrap: wrap;
