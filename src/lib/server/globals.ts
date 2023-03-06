@@ -1,7 +1,9 @@
 /* Global values and application interfaces to usage in whole application server side */
 import Stripe from "stripe";
-import { STRIPE_API_KEY } from "$env/static/private";
+import nodeMailer from "nodemailer";
+import { MAIL_HOST, MAIL_PASS, MAIL_USER, STRIPE_API_KEY } from "$env/static/private";
 
+// Payments side
 const stripe = new Stripe(STRIPE_API_KEY, {
     apiVersion: "2022-11-15"
 });
@@ -34,6 +36,17 @@ export async function generateStripeSession(price_per_order: number, email: stri
     }
 }
 
+// Email side
+const mailer = nodeMailer.createTransport({
+    host: MAIL_HOST,
+    port: 2525,
+    auth: {
+        user: MAIL_USER,
+        pass: MAIL_PASS
+    }
+});
+
 export {
-    stripe
+    stripe,
+    mailer
 }

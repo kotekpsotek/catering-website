@@ -1,0 +1,42 @@
+<!-- Email sended (with this commnent) after when user create successfull payment per order -->
+<div class="information">
+    <p class="title">Successfull payment for order notification</p>
+    <p class="desc">Your order is now on preparation</p>
+    <div class="details">
+        <div class="detail">
+            <p>You can check your order status and payment details under this page:</p>
+            <a href="<%= userPanelUrl %>">user-panel</a>
+        </div>
+        <div class="detail">
+            <p>Your order id (using which you can check delivery status and payments details) is:</p>
+            <p style="color: slateblue;"><%= orderId %></p>
+        </div>
+    </div>
+</div>
+
+<style>
+    div.information {
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    div.information .title {
+        color: slateblue;
+        font-size: 28px;
+        font-weight: 600;
+    }
+
+    div.information .desc {
+        font-size: 18px;
+    }
+
+    div.details {
+        display: flex;
+        flex-direction: column;
+        row-gap: 3px;
+    }
+
+    div.details > div.detail {
+        display: flex;
+        justify-content: space-between;
+    }
+</style>

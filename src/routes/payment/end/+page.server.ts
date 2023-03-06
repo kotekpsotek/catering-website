@@ -1,7 +1,8 @@
 import type { PageServerLoad } from "./$types";
 import { error, redirect } from "@sveltejs/kit";
 import { paymentsModel } from "$lib/server/database/mongodb";
-import { generateStripeSession, stripe } from "$lib/server/globals";
+import { generateStripeSession, stripe, mailer } from "$lib/server/globals";
+import ejs from "ejs";
 
 export const load = (async ({ url }) => {
     /* Parameters recived from url when user is redirected to this url to perform pay operation using for this stripe (TLDR: prior payment) */
@@ -53,8 +54,16 @@ export const load = (async ({ url }) => {
             const stripeCreatedPriorSession = await stripe.checkout.sessions.retrieve(paymentDataFromDb.stripe_session_id);
             const { status } = stripeCreatedPriorSession;
 
-            // Check whether session has been really succesfully completed by payment and update payment database object only when into database status is set as "unpaid" when payment operation ends with successfull payment
+            // Check whether session has been really succesfully completed by payment, send email to given by user address and update payment database object only when into database status is set as "unpaid" when payment operation ends with successfull payment
             if (status == "complete" && paymentDataFromDb.payment_status == "unpaid") {
+                // Send email to client with congratulations for successfull purchased order
+                const _emailSendedStatus = await mailer.sendMail({
+                    to: paymentDataFromDb.user_info.email,
+                    from: "amazingcatering@noreply.com",
+                    subject: "Successfull payment for order notification",
+                    html: await ejs.renderFile("./src/lib/emails/successfullpayment.ejs", { userPanelUrl: url.origin + "/user-panel", orderId: paymentDataFromDb.operation_id })
+                });
+
                 // Update payment status in application mongodb database from "unpdaid" to "paid" rely on stripe session object payment status information and also setup date when status has been changed to "paid" to "payment_finalization_date" field
                 await paymentsModel.updateOne({ operation_id: operationId }, { payment_status: "paid", payment_finalization_date: new Date() }, { new: true })
             }
