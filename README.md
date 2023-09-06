@@ -1,38 +1,24 @@
-# create-svelte
+# Catering website preapred with Svelte + Kit
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+Example how catering website can look and behaves.
+Payments integrations was made in Stripe (so far popular choise)
 
-## Creating a project
+### Some previews:
 
-If you're seeing this, you've probably already done this step. Congrats!
+1. Main page:
+![Main Page](docs/image.png)
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+2. Meal for time page example: 
+![Meal for time example](docs/image-1.png)
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+3. Payments page (1/3):
+![Payments Page 1/3](docs/image-2.png)
 
-## Developing
+4. Payments page (2/3)
+![Payments page 2/3](docs/image-3.png)
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+5. Payment throught Stripe page:
+![Payment throught Stripe](docs/image-4.png)
 
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+6. Success payment page (Payments page 3/3):
+![Success in payment (Payments page 3/3)](docs/image-5.png)
